@@ -1,0 +1,3 @@
+rootProject.name = 'noteRN'
+
+include ':app'
