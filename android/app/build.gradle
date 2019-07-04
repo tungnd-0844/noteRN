@@ -138,6 +138,10 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-voice')
+    implementation project(':react-native-voice')
+    implementation project(':react-native-image-picker')
+    implementation project(':react-native-vector-icons')
     implementation project(':react-native-material-kit')
     implementation project(':react-native-sqlite-storage')
     implementation project(':react-native-gesture-handler')
