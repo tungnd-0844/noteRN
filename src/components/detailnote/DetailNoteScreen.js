@@ -21,7 +21,7 @@ import Geocoder from "react-native-geocoder";
 import { openDatabase } from "react-native-sqlite-storage";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
-class CreatNoteScreen extends Component {
+class DetailNoteScreen extends Component {
   static navigationOptions = {
     header: null
     // title: "Input title",
@@ -44,42 +44,40 @@ class CreatNoteScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      date: "",
-      avatarSource: this.props.navigation.state.params.IMAGE,
-      backgroundColor: "#EEEEEE",
+      date: this.props.navigation.state.params.ITEM.date,
+      avatarSource: this.props.navigation.state.params.ITEM.image,
+      backgroundColor: this.props.navigation.state.params.ITEM.background,
       chooseColor: false,
-      results: "",
-      latitude: 0,
-      longitude: 0,
+      results: this.props.navigation.state.params.ITEM.description,
       voice: false,
-      address: ""
+      address: this.props.navigation.state.params.ITEM.address,
+      id: this.props.navigation.state.params.ITEM.id
     };
     Voice.onSpeechResults = this.onSpeechResults;
   }
 
-  addNewNote = () => {
-    const that = this;
-    const {
-      results,
-      date,
-      backgroundColor,
-      address,
-      avatarSource
-    } = this.state;
-    console.log(avatarSource);
-    if (results === "") {
-      ToastAndroid.show("Bạn chưa điền nội dung", ToastAndroid.SHORT);
+  updateNote = () => {
+    var that = this;
+    const { id } = this.state;
+    const { results } = this.state;
+    const { backgroundColor } = this.state;
+    const { avatarSource } = this.state;
+    if (results === null) {
+      ToastAndroid.show("Bạn cần nhập mô tả", ToastAndroid.SHORT);
     } else {
-      db.transaction(function(tx) {
+      db.transaction(tx => {
         tx.executeSql(
-          "INSERT INTO table_note (description, image, background, address, date) VALUES (?,?,?,?,?)",
-          [results, avatarSource, backgroundColor, address, date],
+          "UPDATE table_note set description=?, image=? , background=? where id=?",
+          [results, avatarSource, backgroundColor, id],
           (tx, results) => {
             if (results.rowsAffected > 0) {
-              ToastAndroid.show("Bạn đã tạo thành công", ToastAndroid.SHORT);
-              that.props.navigation.goBack();
+              ToastAndroid.show(
+                "Bạn đã thay đổi thành công",
+                ToastAndroid.SHORT
+              );
+              that.props.navigation.navigate("Home");
             } else {
-              alert("Tạo mới thất bại");
+              ToastAndroid.show("Thay đổi thất bại", ToastAndroid.SHORT);
             }
           }
         );
@@ -148,41 +146,6 @@ class CreatNoteScreen extends Component {
     });
   }
 
-  componentDidMount() {
-    var that = this;
-    var date = new Date().getDate();
-    var month = new Date().getMonth() + 1;
-    var year = new Date().getFullYear();
-    var hours = new Date().getHours();
-    var min = new Date().getMinutes();
-    that.setState({
-      date: date + "/" + month + "/" + year + " " + hours + ":" + min
-    });
-    navigator.geolocation
-      .getCurrentPosition(position => {
-        that.setState(
-          {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          },
-          () => {
-            var NY = {
-              lat: this.state.latitude,
-              lng: this.state.longitude
-            };
-            Geocoder.geocodePosition(NY)
-              .then(res => {
-                this.setState({
-                  address: res[0].formattedAddress
-                });
-              })
-              .catch(err => ToastAndroid.show(err, ToastAndroid.SHORT));
-          }
-        );
-      })
-      .catch(err => ToastAndroid.show(err, ToastAndroid.SHORT));
-  }
-
   componentWillUnmount() {
     Voice.destroy().then(Voice.removeAllListeners);
   }
@@ -203,7 +166,6 @@ class CreatNoteScreen extends Component {
   };
 
   render() {
-    console.log(this.state.avatarSource);
     return (
       <View style={[styles.container]}>
         <View style={{ backgroundColor: this.state.backgroundColor, flex: 1 }}>
@@ -221,7 +183,7 @@ class CreatNoteScreen extends Component {
                 show: "always"
               }
             ]}
-            onActionSelected={() => this.addNewNote()}
+            onActionSelected={() => this.updateNote()}
           />
           <Text style={[styles.textInput, { marginTop: 8 }]}>
             {this.state.date}
@@ -362,4 +324,4 @@ const mapDispatchToProps = dispatch => {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(CreatNoteScreen);
+)(DetailNoteScreen);

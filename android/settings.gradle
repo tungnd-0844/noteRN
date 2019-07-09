@@ -13,4 +13,6 @@ include ':react-native-sqlite-storage'
 project(':react-native-sqlite-storage').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-sqlite-storage/src/android')
 include ':react-native-voice', ':app'
 project(':react-native-voice').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-voice/android')
+include ':react-native-geocoder', ':app'
+project(':react-native-geocoder').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-geocoder/android')
 include ':app'

@@ -14,6 +14,7 @@ import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
 import org.pgsqlite.SQLitePluginPackage;
 import com.wenkesj.voice.VoicePackage;
+import com.devfd.RNGeocoder.RNGeocoderPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +36,8 @@ public class MainApplication extends Application implements ReactApplication {
           new VectorIconsPackage(),
           new ReactMaterialKitPackage(),
           new RNGestureHandlerPackage(),
-          new SQLitePluginPackage()
+          new SQLitePluginPackage(),
+          new RNGeocoderPackage()
       );
     }
 

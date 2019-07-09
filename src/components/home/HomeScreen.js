@@ -13,12 +13,18 @@ import {
   Text,
   View,
   FlatList,
+  TouchableOpacity,
   Image
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import ActionButton from "react-native-action-button";
+import ItemNoteScreen from "./ItemNoteScreen";
 import Icon from "react-native-vector-icons/Ionicons";
+import ImagePicker from "react-native-image-picker";
+import { openDatabase } from "react-native-sqlite-storage";
+import Swipeout from "react-native-swipeout";
 
+var db = openDatabase({ name: "NoteDatabase.db" });
 export default class HomeScreen extends Component {
   static navigationOptions = {
     title: "Notes",
@@ -34,45 +40,110 @@ export default class HomeScreen extends Component {
     )
   };
 
+  constructor(props) {
+    super(props);
+    db.transaction(function(txn) {
+      txn.executeSql(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='table_note'",
+        [],
+        function(tx, res) {
+          if (res.rows.length == 0) {
+            txn.executeSql("DROP TABLE IF EXISTS table_note", []);
+            txn.executeSql(
+              "CREATE TABLE IF NOT EXISTS table_note(id INTEGER PRIMARY KEY AUTOINCREMENT, description TEXT, image TEXT, background TEXT, address TEXT, date TEXT)",
+              []
+            );
+          }
+        }
+      );
+    });
+    this.state = {
+      avatarSource: "",
+      listNotes: []
+    };
+  }
+
   _handlerNavigationCreateNote = () => {
-    this.props.navigation.navigate("CreateNote");
+    this.props.navigation.navigate("CreateNote", {
+      IMAGE: null
+    });
   };
+
+  selectPhotoTapped() {
+    const options = {
+      quality: 1.0,
+      maxWidth: 500,
+      maxHeight: 500,
+      storageOptions: {
+        skipBackup: true
+      }
+    };
+    ImagePicker.showImagePicker(options, response => {
+      this.setState({
+        avatarSource: response.uri
+      });
+      this.props.navigation.navigate("CreateNote", {
+        IMAGE: this.state.avatarSource
+      });
+    });
+  }
+
+  componentDidMount() {
+    const { navigation } = this.props;
+    this.focusListener = navigation.addListener("didFocus", () =>
+      this.getAllNotes()
+    );
+  }
+
+  getAllNotes() {
+    db.transaction(tx => {
+      tx.executeSql("SELECT * FROM table_note", [], (tx, results) => {
+        var temp = [];
+        for (let i = 0; i < results.rows.length; ++i) {
+          temp.push(results.rows.item(i));
+        }
+        this.setState({
+          listNotes: temp
+        });
+      });
+    });
+  }
+
+  componentWillUnmount() {
+    this.focusListener.remove();
+  }
 
   render() {
     return (
       <View style={{ flex: 1 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            margin: 8,
-            backgroundColor: "#E8F5E9"
+        <FlatList
+          data={this.state.listNotes}
+          renderItem={({ item, index }) => {
+            return (
+              <Swipeout
+                right={swipeBtns}
+                autoClose={false}
+                backgroundColor="transparent"
+              >
+                <TouchableOpacity
+                  onPress={() =>
+                    this.props.navigation.navigate("DetailNote", { ITEM: item })
+                  }
+                >
+                  <ItemNoteScreen item={item} index={index} />
+                </TouchableOpacity>
+              </Swipeout>
+            );
           }}
-        >
-          <View style={{ flex: 1, margin: 8 }}>
-            <View style={{ flexDirection: "row" }}>
-              <Text>12/08/2018 11.20</Text>
-              <MaterialIcon name="room" size={20} />
-              <MaterialIcon name="settings-voice" size={20} />
-            </View>
-
-            <Text style={{ fontSize: 20, color: "black" }}>Diet</Text>
-          </View>
-          <Image
-            source={{
-              uri:
-                "https://pbs.twimg.com/profile_images/486929358120964097/gNLINY67_400x400.png"
-            }}
-            style={{ width: 75, height: 75, margin: 8 }}
-          />
-        </View>
-
+          keyExtractor={({ id }, index) => index.toString()}
+        />
         <ActionButton
           buttonColor="#FDD835"
           style={{ alignItems: "flex-end", elevation: 4 }}
         >
           <ActionButton.Item
             buttonColor="#FDD835"
-            onPress={() => console.log("notes tapped!")}
+            onPress={() => this.selectPhotoTapped()}
           >
             <Icon name="ios-camera" size={25} color={"white"} />
           </ActionButton.Item>
@@ -90,6 +161,14 @@ export default class HomeScreen extends Component {
     );
   }
 }
+swipeBtns = [
+  {
+    text: "Delete",
+    backgroundColor: "red",
+    underlayColor: "rgba(0, 0, 0, 1, 0.6)",
+    onPress: () => {}
+  }
+];
 
 const styles = StyleSheet.create({
   container: {
