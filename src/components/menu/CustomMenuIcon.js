@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import Menu, { MenuItem, MenuDivider } from "react-native-material-menu";
+import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 
 export default class CustomMenuIcon extends Component {
   _menu = null;
@@ -13,9 +14,19 @@ export default class CustomMenuIcon extends Component {
   hideMenu = () => {
     this._menu.hide();
   };
-  optionLogoutClick = () => {
+  optionNavigationInformationClick = () => {
     this._menu.hide();
-    this.props.optionLogoutClick();
+    this.props.optionNavigationInformationClick();
+  };
+
+  optionSortListClick = () => {
+    this._menu.hide();
+    this.props.optionSortListClick();
+  };
+
+  optionSortGirdClick = () => {
+    this._menu.hide();
+    this.props.optionSortGirdClick();
   };
 
   render() {
@@ -25,14 +36,19 @@ export default class CustomMenuIcon extends Component {
           ref={this.setMenuRef}
           button={
             <TouchableOpacity onPress={this.showMenu}>
-              <Image
-                source={require("../image/more.png")}
-                style={{ width: 25, height: 25 }}
-              />
+              <MaterialIcon name="more-vert" size={30} color="white" />
             </TouchableOpacity>
           }
         >
-          <MenuItem onPress={this.optionLogoutClick}>Logout</MenuItem>
+          <MenuItem onPress={this.optionNavigationInformationClick}>
+            Giới thiệu
+          </MenuItem>
+          <MenuItem onPress={this.optionSortGirdClick}>
+            Sắp xếp theo dạng lưới
+          </MenuItem>
+          <MenuItem onPress={this.optionSortListClick}>
+            Sắp xếp theo danh sách
+          </MenuItem>
         </Menu>
       </View>
     );

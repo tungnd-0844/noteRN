@@ -17,7 +17,7 @@ import ImagePicker from "react-native-image-picker";
 import { connect } from "react-redux";
 import { startRecording } from "../../components/createnote/CreateNoteAction";
 import Voice from "react-native-voice";
-import Geocoder from "react-native-geocoder";
+import DateTimePicker from "react-native-modal-datetime-picker";
 import { openDatabase } from "react-native-sqlite-storage";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
@@ -150,7 +150,7 @@ class DetailNoteScreen extends Component {
     Voice.destroy().then(Voice.removeAllListeners);
   }
 
-  _removeNote = () => {
+  onDeleteNote = id => {
     Alert.alert(
       "Remove note",
       "Bạn có muốn xóa không?",
@@ -159,10 +159,43 @@ class DetailNoteScreen extends Component {
           text: "Cancel",
           style: "cancel"
         },
-        { text: "OK", onPress: () => this.props.navigation.goBack() }
+        {
+          text: "OK",
+          onPress: () =>
+            db.transaction(tx => {
+              tx.executeSql(
+                "DELETE FROM table_note where id=?",
+                [id],
+                (tx, results) => {
+                  if (results.rowsAffected > 0) {
+                    ToastAndroid.show(
+                      "Bạn đã xóa thành công",
+                      ToastAndroid.SHORT
+                    );
+                    this.props.navigation.navigate("Home");
+                  } else {
+                    ToastAndroid.show("Xoá thất bại", ToastAndroid.SHORT);
+                  }
+                }
+              );
+            })
+        }
       ],
       { cancelable: false }
     );
+  };
+
+  showDateTimePicker = () => {
+    this.setState({ isDateTimePickerVisible: true });
+  };
+
+  hideDateTimePicker = () => {
+    this.setState({ isDateTimePickerVisible: false });
+  };
+
+  handleDatePicked = date => {
+    this.setState({ selectedDate: date.toString() });
+    this.hideDateTimePicker();
   };
 
   render() {
@@ -241,7 +274,7 @@ class DetailNoteScreen extends Component {
           ) : null}
         </View>
         <View style={styles.containerBottom}>
-          <TouchableOpacity onPress={() => this._removeNote()}>
+          <TouchableOpacity onPress={() => this.onDeleteNote(this.state.id)}>
             <MaterialIcon name="delete" size={30} />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => this.selectPhotoTapped()}>

@@ -18,27 +18,13 @@ import { connect } from "react-redux";
 import { startRecording } from "../../components/createnote/CreateNoteAction";
 import Voice from "react-native-voice";
 import Geocoder from "react-native-geocoder";
+import DatePicker from "react-native-datepicker";
 import { openDatabase } from "react-native-sqlite-storage";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
 class CreatNoteScreen extends Component {
   static navigationOptions = {
     header: null
-    // title: "Input title",
-    // headerStyle: {
-    //   backgroundColor: "#FDD835"
-    // },
-    // headerTintColor: "#fff",
-    // headerRight: (
-    //   <View style={{ flexDirection: "row", marginRight: 8 }}>
-    //     <MaterialIcon
-    //       name="done"
-    //       size={30}
-    //       color="green"
-    //       onPress={() => this.a()}
-    //     />
-    //   </View>
-    // )
   };
 
   constructor(props) {
@@ -52,7 +38,8 @@ class CreatNoteScreen extends Component {
       latitude: 0,
       longitude: 0,
       voice: false,
-      address: ""
+      address: "",
+      complete: 0
     };
     Voice.onSpeechResults = this.onSpeechResults;
   }
@@ -64,16 +51,16 @@ class CreatNoteScreen extends Component {
       date,
       backgroundColor,
       address,
-      avatarSource
+      avatarSource,
+      complete
     } = this.state;
-    console.log(avatarSource);
     if (results === "") {
       ToastAndroid.show("Bạn chưa điền nội dung", ToastAndroid.SHORT);
     } else {
       db.transaction(function(tx) {
         tx.executeSql(
-          "INSERT INTO table_note (description, image, background, address, date) VALUES (?,?,?,?,?)",
-          [results, avatarSource, backgroundColor, address, date],
+          "INSERT INTO table_note (description, image, background, address, date, complete) VALUES (?,?,?,?,?,?)",
+          [results, avatarSource, backgroundColor, address, date, complete],
           (tx, results) => {
             if (results.rowsAffected > 0) {
               ToastAndroid.show("Bạn đã tạo thành công", ToastAndroid.SHORT);
@@ -203,7 +190,7 @@ class CreatNoteScreen extends Component {
   };
 
   render() {
-    console.log(this.state.avatarSource);
+    console.log(this.state.selectedDate);
     return (
       <View style={[styles.container]}>
         <View style={{ backgroundColor: this.state.backgroundColor, flex: 1 }}>
@@ -223,9 +210,42 @@ class CreatNoteScreen extends Component {
             ]}
             onActionSelected={() => this.addNewNote()}
           />
-          <Text style={[styles.textInput, { marginTop: 8 }]}>
-            {this.state.date}
-          </Text>
+          <View>
+            <TouchableOpacity>
+              <Text
+                style={[styles.textInput, { marginTop: 8 }]}
+                onPress={this.showDateTimePicker}
+              >
+                {this.state.selectedDate}
+              </Text>
+            </TouchableOpacity>
+            <DatePicker
+              style={{ width: 200 }}
+              date={this.state.date} //initial date from state
+              mode="date" //The enum of date, datetime and time
+              placeholder="select date"
+              format="DD-MM-YYYY"
+              minDate="01-01-2016"
+              maxDate="01-01-2020"
+              confirmBtnText="Confirm"
+              cancelBtnText="Cancel"
+              customStyles={{
+                dateIcon: {
+                  position: "absolute",
+                  left: 0,
+                  top: 4,
+                  marginLeft: 0
+                },
+                dateInput: {
+                  marginLeft: 36
+                }
+              }}
+              onDateChange={date => {
+                this.setState({ date: date });
+              }}
+            />
+          </View>
+
           {this.state.address === "" ? null : (
             <Text style={[styles.textInput, { marginTop: 8 }]}>
               {this.state.address}
