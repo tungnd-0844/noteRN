@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "671658438446",
+    "firebase_url": "https://note-b039e.firebaseio.com",
+    "project_id": "note-b039e",
+    "storage_bucket": "note-b039e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671658438446:android:a75a0b7df3c3cc80",
+        "android_client_info": {
+          "package_name": "com.notern"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "671658438446-hbbq1jcpf5v1kdhjne4knj8uplt8o1hg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNuKRrqKcXAr7ZMwWZtjN6vAFY9qZctFI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "671658438446-hbbq1jcpf5v1kdhjne4knj8uplt8o1hg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

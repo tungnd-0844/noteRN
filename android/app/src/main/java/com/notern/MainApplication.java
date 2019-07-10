@@ -3,6 +3,7 @@ package com.notern;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import io.invertase.firebase.RNFirebasePackage;
 import com.terrylinla.rnsketchcanvas.SketchCanvasPackage;
 import com.wenkesj.voice.VoicePackage;
 import com.imagepicker.ImagePickerPackage;
@@ -16,6 +17,7 @@ import com.facebook.soloader.SoLoader;
 import org.pgsqlite.SQLitePluginPackage;
 import com.wenkesj.voice.VoicePackage;
 import com.devfd.RNGeocoder.RNGeocoderPackage;
+import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,14 +34,16 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new SketchCanvasPackage(),
+          new RNFirebasePackage(),
+          new SketchCanvasPackage(),
           new VoicePackage(),
           new ImagePickerPackage(),
           new VectorIconsPackage(),
           new ReactMaterialKitPackage(),
           new RNGestureHandlerPackage(),
           new SQLitePluginPackage(),
-          new RNGeocoderPackage()
+          new RNGeocoderPackage(),
+          new RNFirebaseMessagingPackage()
       );
     }
 
