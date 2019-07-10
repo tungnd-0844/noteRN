@@ -3,6 +3,7 @@ package com.notern;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.terrylinla.rnsketchcanvas.SketchCanvasPackage;
 import com.wenkesj.voice.VoicePackage;
 import com.imagepicker.ImagePickerPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -31,6 +32,7 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new SketchCanvasPackage(),
           new VoicePackage(),
           new ImagePickerPackage(),
           new VectorIconsPackage(),

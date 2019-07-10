@@ -10,6 +10,7 @@ import {
   FlatList,
   Alert,
   ToastAndroid,
+  Modal,
   ToolbarAndroid
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
@@ -20,6 +21,7 @@ import Voice from "react-native-voice";
 import Geocoder from "react-native-geocoder";
 import DatePicker from "react-native-datepicker";
 import { openDatabase } from "react-native-sqlite-storage";
+import RNSketchCanvas from "@terrylinla/react-native-sketch-canvas";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
 class CreatNoteScreen extends Component {
@@ -39,7 +41,8 @@ class CreatNoteScreen extends Component {
       longitude: 0,
       voice: false,
       address: "",
-      complete: 0
+      complete: 0,
+      modalVisible: false
     };
     Voice.onSpeechResults = this.onSpeechResults;
   }
@@ -189,88 +192,178 @@ class CreatNoteScreen extends Component {
     );
   };
 
+  setModalVisible(visible) {
+    this.setState({ modalVisible: visible });
+  }
+
   render() {
-    console.log(this.state.selectedDate);
     return (
       <View style={[styles.container]}>
-        <View style={{ backgroundColor: this.state.backgroundColor, flex: 1 }}>
-          <MaterialIcon.ToolbarAndroid
-            style={{ height: 56, backgroundColor: "#FDD835", elevation: 4 }}
-            iconColor="white"
-            navIconName={"arrow-back"}
-            title="Input title"
-            titleColor="white"
-            onIconClicked={() => this.props.navigation.goBack()}
-            actions={[
-              {
-                title: "Done",
-                icon: require("../../images/done.png"),
-                show: "always"
-              }
-            ]}
-            onActionSelected={() => this.addNewNote()}
-          />
-          <View>
-            <TouchableOpacity>
-              <Text
-                style={[styles.textInput, { marginTop: 8 }]}
-                onPress={this.showDateTimePicker}
-              >
-                {this.state.selectedDate}
-              </Text>
-            </TouchableOpacity>
-            <DatePicker
-              style={{ width: 200 }}
-              date={this.state.date} //initial date from state
-              mode="date" //The enum of date, datetime and time
-              placeholder="select date"
-              format="DD-MM-YYYY"
-              minDate="01-01-2016"
-              maxDate="01-01-2020"
-              confirmBtnText="Confirm"
-              cancelBtnText="Cancel"
-              customStyles={{
-                dateIcon: {
-                  position: "absolute",
-                  left: 0,
-                  top: 4,
-                  marginLeft: 0
-                },
-                dateInput: {
-                  marginLeft: 36
+        {this.state.modalVisible === false ? (
+          <View
+            style={{ backgroundColor: this.state.backgroundColor, flex: 1 }}
+          >
+            <MaterialIcon.ToolbarAndroid
+              style={{ height: 56, backgroundColor: "#FDD835", elevation: 4 }}
+              iconColor="white"
+              navIconName={"arrow-back"}
+              title="Input title"
+              titleColor="white"
+              onIconClicked={() => this.props.navigation.goBack()}
+              actions={[
+                {
+                  title: "Done",
+                  icon: require("../../images/done.png"),
+                  show: "always"
                 }
-              }}
-              onDateChange={date => {
-                this.setState({ date: date });
-              }}
+              ]}
+              onActionSelected={() => this.addNewNote()}
             />
-          </View>
-
-          {this.state.address === "" ? null : (
-            <Text style={[styles.textInput, { marginTop: 8 }]}>
-              {this.state.address}
-            </Text>
-          )}
-          <TextInput
-            placeholder="Note:"
-            style={styles.textInput}
-            multiline={true}
-            onChangeText={text =>
-              this.setState({
-                results: text
-              })
-            }
-            value={this.state.results}
-          />
-          <View style={[styles.avatarContainer, { marginBottom: 8 }]}>
-            {this.state.avatarSource === null ? null : (
-              <Image
-                style={styles.avatar}
-                source={{ uri: this.state.avatarSource }}
+            <View>
+              <TouchableOpacity>
+                <Text
+                  style={[styles.textInput, { marginTop: 8 }]}
+                  onPress={this.showDateTimePicker}
+                >
+                  {this.state.selectedDate}
+                </Text>
+              </TouchableOpacity>
+              <DatePicker
+                style={{ width: 200 }}
+                date={this.state.date} //initial date from state
+                mode="date" //The enum of date, datetime and time
+                placeholder="select date"
+                format="DD-MM-YYYY"
+                minDate="01-01-2016"
+                maxDate="01-01-2020"
+                confirmBtnText="Confirm"
+                cancelBtnText="Cancel"
+                customStyles={{
+                  dateIcon: {
+                    position: "absolute",
+                    left: 0,
+                    top: 4,
+                    marginLeft: 0
+                  },
+                  dateInput: {
+                    marginLeft: 36
+                  }
+                }}
+                onDateChange={date => {
+                  this.setState({ date: date });
+                }}
               />
+            </View>
+
+            {this.state.address === "" ? null : (
+              <Text style={[styles.textInput, { marginTop: 8 }]}>
+                {this.state.address}
+              </Text>
             )}
+            <TextInput
+              placeholder="Note:"
+              style={styles.textInput}
+              multiline={true}
+              autoFocus={true}
+              onChangeText={text =>
+                this.setState({
+                  results: text
+                })
+              }
+              value={this.state.results}
+            />
+            <View style={[styles.avatarContainer, { marginBottom: 8 }]}>
+              {this.state.avatarSource === null ? null : (
+                <Image
+                  style={styles.avatar}
+                  source={{ uri: this.state.avatarSource }}
+                />
+              )}
+            </View>
           </View>
-        </View>
+        ) : (
+          <View>
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={this.state.modalVisible}
+              onRequestClose={() => {
+                this.setModalVisible(!this.state.modalVisible);
+              }}
+            >
+              <View style={{ flex: 1, flexDirection: "row" }}>
+                <RNSketchCanvas
+                  containerStyle={{ backgroundColor: "transparent", flex: 1 }}
+                  canvasStyle={{ backgroundColor: "transparent", flex: 1 }}
+                  defaultStrokeIndex={0}
+                  defaultStrokeWidth={5}
+                  clearComponent={
+                    <View style={styles.functionButton}>
+                      <Text style={{ color: "white" }}>Clear</Text>
+                    </View>
+                  }
+                  eraseComponent={
+                    <View style={styles.functionButton}>
+                      <Text style={{ color: "white" }}>Eraser</Text>
+                    </View>
+                  }
+                  saveComponent={
+                    <View style={styles.functionButton}>
+                      <Text style={{ color: "white" }}>Save</Text>
+                    </View>
+                  }
+                  strokeComponent={color => (
+                    <View
+                      style={[
+                        { backgroundColor: color },
+                        styles.strokeColorButton
+                      ]}
+                    />
+                  )}
+                  strokeSelectedComponent={(color, index, changed) => {
+                    return (
+                      <View
+                        style={[
+                          { backgroundColor: color, borderWidth: 2 },
+                          styles.strokeColorButton
+                        ]}
+                      />
+                    );
+                  }}
+                  strokeWidthComponent={w => {
+                    return (
+                      <View style={styles.strokeWidthButton}>
+                        <View
+                          style={{
+                            backgroundColor: "white",
+                            marginHorizontal: 2.5,
+                            width: Math.sqrt(w / 3) * 10,
+                            height: Math.sqrt(w / 3) * 10,
+                            borderRadius: (Math.sqrt(w / 3) * 10) / 2
+                          }}
+                        />
+                      </View>
+                    );
+                  }}
+                  savePreference={() => {
+                    return {
+                      folder: "RNSketchCanvas",
+                      filename: String(Math.ceil(Math.random() * 100000000)),
+                      transparent: false,
+                      imageType: "png"
+                    };
+                  }}
+                  onSketchSaved={(success, filePath) => {
+                    this.setState({
+                      avatarSource: "file://" + filePath
+                    });
+                    this.setModalVisible(!this.state.modalVisible);
+                  }}
+                />
+              </View>
+            </Modal>
+          </View>
+        )}
 
         <View>
           {this.state.chooseColor === true ? (
@@ -306,7 +399,10 @@ class CreatNoteScreen extends Component {
             <MaterialIcon name="camera-enhance" size={30} />
           </TouchableOpacity>
 
-          <MaterialIcon name="room" size={30} />
+          <TouchableOpacity onPress={() => this.setModalVisible(true)}>
+            <MaterialIcon name="edit" size={30} />
+          </TouchableOpacity>
+
           {this.state.voice === false ? (
             <TouchableOpacity onPress={() => this._startRecognizing()}>
               <MaterialIcon name="settings-voice" size={30} />
@@ -339,7 +435,8 @@ const dataColor = ["#F8BBD0", "#C8E6C9", "#FFF9C4", "#F5F5F5", "#BBDEFB"];
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    justifyContent: "center"
   },
   row: {
     flex: 1,
@@ -365,6 +462,39 @@ const styles = StyleSheet.create({
     width: 150,
     height: 100,
     marginLeft: 8
+  },
+  headerText: {
+    fontSize: 20,
+    textAlign: "center",
+    margin: 10,
+    fontWeight: "bold"
+  },
+  strokeColorButton: {
+    marginHorizontal: 2.5,
+    marginVertical: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15
+  },
+  strokeWidthButton: {
+    marginHorizontal: 2.5,
+    marginVertical: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#39579A"
+  },
+  functionButton: {
+    marginHorizontal: 2.5,
+    marginVertical: 8,
+    height: 30,
+    width: 60,
+    backgroundColor: "#39579A",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 5
   }
 });
 

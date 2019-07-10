@@ -7,6 +7,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@terrylinla/react-native-sketch-canvas": "^0.8.0",
     "react": "16.8.3",
     "react-native": "^0.59.9",
     "react-native-action-button": "^2.8.5",

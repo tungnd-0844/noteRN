@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import ActionButton from "react-native-action-button";
+import { Tooltip } from "react-native-elements";
 import Icon from "react-native-vector-icons/Ionicons";
 import Swipeout from "react-native-swipeout";
 
@@ -77,21 +78,9 @@ export default class ItemNoteScreen extends Component {
           underlayColor: "rgba(0, 0, 0, 1, 0.6)",
           onPress: () => {
             const deletingRow = this.state.activeRowKey;
-            Alert.alert(
-              "Alert",
-              "Bạn có chắc chắn muốn xóa???",
-              [
-                { text: "No", style: "cancel" },
-                {
-                  text: "Yes",
-                  onPress: () => {
-                    this.onDeleteNote(item);
-                    this.props.parentFlatList.refreshNoteList(deletingRow);
-                  }
-                }
-              ],
-              { cancelable: true }
-            );
+
+            this.onDeleteNote(item);
+            this.props.parentFlatList.refreshNoteList(deletingRow);
           }
         }
       ],
@@ -128,11 +117,24 @@ export default class ItemNoteScreen extends Component {
               <View style={{ flex: 1, margin: 8 }}>
                 <View style={{ flexDirection: "row" }}>
                   <Text>{item.date}</Text>
-                  <MaterialIcon name="room" size={20} />
+                  <Tooltip
+                    height={100}
+                    popover={<Text style={{ flex: 1 }}>{item.address}</Text>}
+                  >
+                    <MaterialIcon name="room" size={20} />
+                  </Tooltip>
                   <MaterialIcon name="settings-voice" size={20} />
                 </View>
 
-                <Text style={[{ fontSize: 20, color: "black" }]}>
+                <Text
+                  numberOfLines={2}
+                  style={[
+                    { fontSize: 20, color: "black" },
+                    item.complete === 1
+                      ? { textDecorationLine: "line-through" }
+                      : {}
+                  ]}
+                >
                   {item.description}
                 </Text>
               </View>
