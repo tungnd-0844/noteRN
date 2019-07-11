@@ -18,6 +18,7 @@ import org.pgsqlite.SQLitePluginPackage;
 import com.wenkesj.voice.VoicePackage;
 import com.devfd.RNGeocoder.RNGeocoderPackage;
 import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;
+import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,7 +44,8 @@ public class MainApplication extends Application implements ReactApplication {
           new RNGestureHandlerPackage(),
           new SQLitePluginPackage(),
           new RNGeocoderPackage(),
-          new RNFirebaseMessagingPackage()
+          new RNFirebaseMessagingPackage(),
+          new RNFirebaseNotificationsPackage()
       );
     }
 
