@@ -138,6 +138,7 @@ android {
 }
 
 dependencies {
+    implementation project(':@terrylinla_react-native-sketch-canvas')
     implementation project(':react-native-voice')
     implementation project(':react-native-geocoder')
     implementation project(':react-native-image-picker')

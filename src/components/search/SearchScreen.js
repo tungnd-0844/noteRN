@@ -6,10 +6,12 @@ import {
   FlatList,
   TouchableOpacity
 } from "react-native";
-import { SearchBar } from "react-native-elements";
+import { SearchBar, Header } from "react-native-elements";
 import Icon from "react-native-vector-icons/Ionicons";
 import ItemNoteScreen from "../home/ItemNoteScreen";
 import { openDatabase } from "react-native-sqlite-storage";
+import MaterialIcon from "react-native-vector-icons/MaterialIcons";
+import CustomMenuIcon from "../menu/CustomMenuIcon";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
 export default class SearchScreen extends Component {
@@ -105,6 +107,7 @@ export default class SearchScreen extends Component {
           value={this.state.note}
           autoCorrect={false}
         />
+
         <FlatList
           data={this.state.listNotes}
           renderItem={({ item, index }) => {

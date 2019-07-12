@@ -10,7 +10,8 @@ import {
   FlatList,
   Alert,
   ToastAndroid,
-  ToolbarAndroid
+  ScrollView,
+  Modal
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import ImagePicker from "react-native-image-picker";
@@ -19,6 +20,7 @@ import { startRecording } from "../../components/createnote/CreateNoteAction";
 import Voice from "react-native-voice";
 import DateTimePicker from "react-native-modal-datetime-picker";
 import { openDatabase } from "react-native-sqlite-storage";
+import RNSketchCanvas from "@terrylinla/react-native-sketch-canvas";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
 class DetailNoteScreen extends Component {
@@ -51,7 +53,8 @@ class DetailNoteScreen extends Component {
       results: this.props.navigation.state.params.ITEM.description,
       voice: false,
       address: this.props.navigation.state.params.ITEM.address,
-      id: this.props.navigation.state.params.ITEM.id
+      id: this.props.navigation.state.params.ITEM.id,
+      modalVisible: false
     };
     Voice.onSpeechResults = this.onSpeechResults;
   }
@@ -198,54 +201,147 @@ class DetailNoteScreen extends Component {
     this.hideDateTimePicker();
   };
 
+  setModalVisible(visible) {
+    this.setState({ modalVisible: visible });
+  }
+
   render() {
     return (
       <View style={[styles.container]}>
-        <View style={{ backgroundColor: this.state.backgroundColor, flex: 1 }}>
-          <MaterialIcon.ToolbarAndroid
-            style={{ height: 56, backgroundColor: "#FDD835", elevation: 4 }}
-            iconColor="white"
-            navIconName={"arrow-back"}
-            title="Input title"
-            titleColor="white"
-            onIconClicked={() => this.props.navigation.goBack()}
-            actions={[
-              {
-                title: "Done",
-                icon: require("../../images/done.png"),
-                show: "always"
-              }
-            ]}
-            onActionSelected={() => this.updateNote()}
-          />
-          <Text style={[styles.textInput, { marginTop: 8 }]}>
-            {this.state.date}
-          </Text>
-          {this.state.address === "" ? null : (
+        {this.state.modalVisible === false ? (
+          <View
+            style={{ backgroundColor: this.state.backgroundColor, flex: 1 }}
+          >
+            <MaterialIcon.ToolbarAndroid
+              style={{ height: 56, backgroundColor: "#FDD835", elevation: 4 }}
+              iconColor="white"
+              navIconName={"arrow-back"}
+              title="Input title"
+              titleColor="white"
+              onIconClicked={() => this.props.navigation.goBack()}
+              actions={[
+                {
+                  title: "Done",
+                  icon: require("../../images/done.png"),
+                  show: "always"
+                }
+              ]}
+              onActionSelected={() => this.updateNote()}
+            />
             <Text style={[styles.textInput, { marginTop: 8 }]}>
-              {this.state.address}
+              {this.state.date}
             </Text>
-          )}
-          <TextInput
-            placeholder="Note:"
-            style={styles.textInput}
-            multiline={true}
-            onChangeText={text =>
-              this.setState({
-                results: text
-              })
-            }
-            value={this.state.results}
-          />
-          <View style={[styles.avatarContainer, { marginBottom: 8 }]}>
-            {this.state.avatarSource === null ? null : (
-              <Image
-                style={styles.avatar}
-                source={{ uri: this.state.avatarSource }}
-              />
+            {this.state.address === "" ? null : (
+              <Text style={[styles.textInput, { marginTop: 8 }]}>
+                {this.state.address}
+              </Text>
             )}
+            <ScrollView>
+              <TextInput
+                placeholder="Note:"
+                style={styles.textInput}
+                multiline={true}
+                autoFocus={true}
+                onChangeText={text =>
+                  this.setState({
+                    results: text
+                  })
+                }
+                value={this.state.results}
+              />
+              <View style={[styles.avatarContainer, { marginBottom: 8 }]}>
+                {this.state.avatarSource === null ? null : (
+                  <Image
+                    style={styles.avatar}
+                    source={{ uri: this.state.avatarSource }}
+                  />
+                )}
+              </View>
+            </ScrollView>
           </View>
-        </View>
+        ) : (
+          <View>
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={this.state.modalVisible}
+              onRequestClose={() => {
+                this.setModalVisible(!this.state.modalVisible);
+              }}
+            >
+              <View style={{ flex: 1, flexDirection: "row" }}>
+                <RNSketchCanvas
+                  containerStyle={{ backgroundColor: "transparent", flex: 1 }}
+                  canvasStyle={{ backgroundColor: "transparent", flex: 1 }}
+                  defaultStrokeIndex={0}
+                  defaultStrokeWidth={5}
+                  clearComponent={
+                    <View style={styles.functionButton}>
+                      <Text style={{ color: "white" }}>Clear</Text>
+                    </View>
+                  }
+                  eraseComponent={
+                    <View style={styles.functionButton}>
+                      <Text style={{ color: "white" }}>Eraser</Text>
+                    </View>
+                  }
+                  saveComponent={
+                    <View style={styles.functionButton}>
+                      <Text style={{ color: "white" }}>Save</Text>
+                    </View>
+                  }
+                  strokeComponent={color => (
+                    <View
+                      style={[
+                        { backgroundColor: color },
+                        styles.strokeColorButton
+                      ]}
+                    />
+                  )}
+                  strokeSelectedComponent={(color, index, changed) => {
+                    return (
+                      <View
+                        style={[
+                          { backgroundColor: color, borderWidth: 2 },
+                          styles.strokeColorButton
+                        ]}
+                      />
+                    );
+                  }}
+                  strokeWidthComponent={w => {
+                    return (
+                      <View style={styles.strokeWidthButton}>
+                        <View
+                          style={{
+                            backgroundColor: "white",
+                            marginHorizontal: 2.5,
+                            width: Math.sqrt(w / 3) * 10,
+                            height: Math.sqrt(w / 3) * 10,
+                            borderRadius: (Math.sqrt(w / 3) * 10) / 2
+                          }}
+                        />
+                      </View>
+                    );
+                  }}
+                  savePreference={() => {
+                    return {
+                      folder: "RNSketchCanvas",
+                      filename: String(Math.ceil(Math.random() * 100000000)),
+                      transparent: false,
+                      imageType: "png"
+                    };
+                  }}
+                  onSketchSaved={(success, filePath) => {
+                    this.setState({
+                      avatarSource: "file://" + filePath
+                    });
+                    this.setModalVisible(!this.state.modalVisible);
+                  }}
+                />
+              </View>
+            </Modal>
+          </View>
+        )}
 
         <View>
           {this.state.chooseColor === true ? (
@@ -281,7 +377,10 @@ class DetailNoteScreen extends Component {
             <MaterialIcon name="camera-enhance" size={30} />
           </TouchableOpacity>
 
-          <MaterialIcon name="room" size={30} />
+          <TouchableOpacity onPress={() => this.setModalVisible(true)}>
+            <MaterialIcon name="edit" size={30} />
+          </TouchableOpacity>
+
           {this.state.voice === false ? (
             <TouchableOpacity onPress={() => this._startRecognizing()}>
               <MaterialIcon name="settings-voice" size={30} />
@@ -337,9 +436,42 @@ const styles = StyleSheet.create({
     alignItems: "center"
   },
   avatar: {
-    width: 150,
-    height: 100,
+    width: "100%",
+    height: 400,
     marginLeft: 8
+  },
+  headerText: {
+    fontSize: 20,
+    textAlign: "center",
+    margin: 10,
+    fontWeight: "bold"
+  },
+  strokeColorButton: {
+    marginHorizontal: 2.5,
+    marginVertical: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15
+  },
+  strokeWidthButton: {
+    marginHorizontal: 2.5,
+    marginVertical: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#39579A"
+  },
+  functionButton: {
+    marginHorizontal: 2.5,
+    marginVertical: 8,
+    height: 30,
+    width: 60,
+    backgroundColor: "#39579A",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 5
   }
 });
 

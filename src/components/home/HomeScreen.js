@@ -15,6 +15,7 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  Alert,
   ToastAndroid
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
@@ -22,6 +23,7 @@ import ActionButton from "react-native-action-button";
 import ItemNoteScreen from "./ItemNoteScreen";
 import Icon from "react-native-vector-icons/Ionicons";
 import ImagePicker from "react-native-image-picker";
+import ItemGirdNoteScreen from "./ItemGirdNoteScreen";
 import CustomMenuIcon from "../menu/CustomMenuIcon";
 import { openDatabase } from "react-native-sqlite-storage";
 
@@ -29,28 +31,29 @@ var db = openDatabase({ name: "NoteDatabase.db" });
 export default class HomeScreen extends Component {
   static navigationOptions = ({ navigation }) => {
     return {
-      title: "Notes",
-      headerStyle: {
-        backgroundColor: "#FDD835"
-      },
-      headerTintColor: "#fff",
-      headerRight: (
-        <View style={{ flexDirection: "row", marginRight: 8 }}>
-          <TouchableOpacity onPress={() => navigation.navigate("Search")}>
-            <MaterialIcon name="search" size={30} color="white" />
-          </TouchableOpacity>
+      header: null
+      // title: "Notes",
+      // headerStyle: {
+      //   backgroundColor: "#FDD835"
+      // },
+      // headerTintColor: "#fff",
+      // headerRight: (
+      //   <View style={{ flexDirection: "row", marginRight: 8 }}>
+      //     <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+      //       <MaterialIcon name="search" size={30} color="white" />
+      //     </TouchableOpacity>
 
-          <CustomMenuIcon
-            menutext="Menu"
-            optionNavigationInformationClick={() => {
-              navigation.navigate("Information");
-            }}
-            optionSortListClick={() => {
-              ToastAndroid.show(state.avatarSource, ToastAndroid.SHORT);
-            }}
-          />
-        </View>
-      )
+      //     <CustomMenuIcon
+      //       menutext="Menu"
+      //       optionNavigationInformationClick={() => {
+      //         navigation.navigate("Information");
+      //       }}
+      //       optionSortListClick={() => {
+      //         ToastAndroid.show(state.avatarSource, ToastAndroid.SHORT);
+      //       }}
+      //     />
+      //   </View>
+      // )
     };
   };
 
@@ -74,7 +77,8 @@ export default class HomeScreen extends Component {
     this.state = {
       avatarSource: "",
       listNotes: [],
-      deleteRowKey: null
+      deleteRowKey: null,
+      typeList: false
     };
   }
 
@@ -137,20 +141,36 @@ export default class HomeScreen extends Component {
   }
 
   onDeleteNote = item => {
-    db.transaction(tx => {
-      tx.executeSql(
-        "DELETE FROM table_note where id=?",
-        [item.id],
-        (tx, results) => {
-          if (results.rowsAffected > 0) {
-            this.getAllNotes();
-            ToastAndroid.show("Bạn đã xóa thành công", ToastAndroid.SHORT);
-          } else {
-            ToastAndroid.show("Xoá thất bại", ToastAndroid.SHORT);
+    Alert.alert(
+      "Alert",
+      "Bạn có chắc chắn muốn xóa???",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes",
+          onPress: () => {
+            db.transaction(tx => {
+              tx.executeSql(
+                "DELETE FROM table_note where id=?",
+                [item.id],
+                (tx, results) => {
+                  if (results.rowsAffected > 0) {
+                    this.getAllNotes();
+                    ToastAndroid.show(
+                      "Bạn đã xóa thành công",
+                      ToastAndroid.SHORT
+                    );
+                  } else {
+                    ToastAndroid.show("Xoá thất bại", ToastAndroid.SHORT);
+                  }
+                }
+              );
+            });
           }
         }
-      );
-    });
+      ],
+      { cancelable: true }
+    );
   };
 
   onToggleNote = item => {
@@ -175,7 +195,6 @@ export default class HomeScreen extends Component {
         }
       );
     });
-    console.log(complete);
   };
 
   componentWillUnmount() {
@@ -183,22 +202,90 @@ export default class HomeScreen extends Component {
   }
 
   render() {
+    // const a = this.state.listNotes.sort((a,b) => (a.description > b.description) ? 1 : ((b.description > a.description) ? -1 : 0));
+    // console.log(a);
     return (
       <View style={{ flex: 1 }}>
-        <FlatList
-          data={this.state.listNotes}
-          renderItem={({ item, index }) => {
-            return (
-              <ItemNoteScreen
-                item={item}
-                index={index}
-                onPress={this.onDeleteNote}
-                parentFlatList={this}
-              />
-            );
+        <View
+          style={{
+            height: 56,
+            backgroundColor: "#FDD835",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            elevation: 4
           }}
-          keyExtractor={({ id }, index) => index.toString()}
-        />
+        >
+          <View>
+            <Text
+              style={{
+                marginTop: 16,
+                marginLeft: 16,
+                color: "#FFF",
+                fontSize: 20,
+                fontWeight: "bold"
+              }}
+            >
+              Notes
+            </Text>
+          </View>
+          <View>
+            <View
+              style={{ flexDirection: "row", marginRight: 8, marginTop: 16 }}
+            >
+              <TouchableOpacity
+                onPress={() => this.props.navigation.navigate("Search")}
+              >
+                <MaterialIcon name="search" size={30} color="white" />
+              </TouchableOpacity>
+
+              <CustomMenuIcon
+                menutext="Menu"
+                optionNavigationInformationClick={() => {
+                  this.props.navigation.navigate("Information");
+                }}
+                optionSortListClick={() => {
+                  this.setState({ typeList: false });
+                }}
+                optionSortGirdClick={() => {
+                  this.setState({ typeList: true });
+                }}
+              />
+            </View>
+          </View>
+        </View>
+        {this.state.typeList === false ? (
+          <FlatList
+            data={this.state.listNotes}
+            renderItem={({ item, index }) => {
+              return (
+                <ItemNoteScreen
+                  item={item}
+                  index={index}
+                  onPress={this.onDeleteNote}
+                  parentFlatList={this}
+                />
+              );
+            }}
+            keyExtractor={({ id }, index) => index.toString()}
+          />
+        ) : (
+          <FlatList
+            data={this.state.listNotes}
+            numColumns={2}
+            renderItem={({ item, index }) => {
+              return (
+                <ItemGirdNoteScreen
+                  item={item}
+                  index={index}
+                  onPress={this.onDeleteNote}
+                  parentFlatList={this}
+                />
+              );
+            }}
+            key={this.state.typeList === false ? "v" : "h"}
+            keyExtractor={({ id }, index) => index.toString()}
+          />
+        )}
         <ActionButton
           buttonColor="#FDD835"
           style={{ alignItems: "flex-end", elevation: 4 }}
@@ -209,9 +296,9 @@ export default class HomeScreen extends Component {
           >
             <Icon name="ios-camera" size={25} color={"white"} />
           </ActionButton.Item>
-          <ActionButton.Item buttonColor="#FDD835" onPress={() => {}}>
+          {/* <ActionButton.Item buttonColor="#FDD835" onPress={() => {}}>
             <Icon name="ios-checkbox" size={25} color={"white"} />
-          </ActionButton.Item>
+          </ActionButton.Item> */}
           <ActionButton.Item
             buttonColor="#FDD835"
             onPress={() => this._handlerNavigationCreateNote()}
