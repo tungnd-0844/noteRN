@@ -14,6 +14,7 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import CustomMenuIcon from "../menu/CustomMenuIcon";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
+
 export default class SearchScreen extends Component {
   constructor(props) {
     super(props);

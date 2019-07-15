@@ -11,7 +11,7 @@ import {
   Alert,
   ToastAndroid,
   Modal,
-  ToolbarAndroid
+  DeviceEventEmitter
 } from "react-native";
 import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import ImagePicker from "react-native-image-picker";
@@ -19,11 +19,21 @@ import { connect } from "react-redux";
 import { startRecording } from "../../components/createnote/CreateNoteAction";
 import Voice from "react-native-voice";
 import Geocoder from "react-native-geocoder";
-import DatePicker from "react-native-datepicker";
 import { openDatabase } from "react-native-sqlite-storage";
 import RNSketchCanvas from "@terrylinla/react-native-sketch-canvas";
+import DateTimePicker from "react-native-modal-datetime-picker";
+import moment from "moment";
+import ReactNativeAN from "react-native-alarm-notification";
 
 var db = openDatabase({ name: "NoteDatabase.db" });
+
+const alarmNotifData = {
+  title: "Alarm",
+  vibrate: true,
+  play_sound: true,
+  schedule_once: true,
+  channel: "wakeup"
+};
 class CreatNoteScreen extends Component {
   static navigationOptions = {
     header: null
@@ -39,13 +49,33 @@ class CreatNoteScreen extends Component {
       results: "",
       latitude: 0,
       longitude: 0,
+      time: "",
       voice: false,
       address: "",
       complete: 0,
-      modalVisible: false
+      modalVisible: false,
+      isDateTimePickerVisible: false,
+      selectedDate: ""
     };
     Voice.onSpeechResults = this.onSpeechResults;
+    this.setAlarm = this.setAlarm.bind(this);
   }
+
+  setAlarm = (date, id) => {
+    let fireDate = "15-7-2019 14:30:00";
+    console.log(date);
+    console.log(fireDate);
+
+    const details = {
+      ...alarmNotifData,
+      fire_date: date,
+      id: id,
+      message: this.state.results
+    };
+    // console.log(`alarm set: ${fireDate}`);
+    //  this.setState({ update: `alarm set: ${fireDate}` });
+    ReactNativeAN.scheduleAlarm(details);
+  };
 
   addNewNote = () => {
     const that = this;
@@ -67,6 +97,7 @@ class CreatNoteScreen extends Component {
           (tx, results) => {
             if (results.rowsAffected > 0) {
               ToastAndroid.show("Bạn đã tạo thành công", ToastAndroid.SHORT);
+              that.setAlarm(date, results.insertId);
               that.props.navigation.goBack();
             } else {
               alert("Tạo mới thất bại");
@@ -146,7 +177,16 @@ class CreatNoteScreen extends Component {
     var hours = new Date().getHours();
     var min = new Date().getMinutes();
     that.setState({
-      date: date + "/" + month + "/" + year + " " + hours + ":" + min
+      date: date + "-" + month + "-" + year + " " + hours + ":" + min
+    });
+    DeviceEventEmitter.addListener("OnNotificationDismissed", async function(
+      e
+    ) {
+      ReactNativeAN.stopAlarm();
+    });
+
+    DeviceEventEmitter.addListener("OnNotificationOpened", async function(e) {
+      ReactNativeAN.stopAlarm();
     });
     navigator.geolocation
       .getCurrentPosition(position => {
@@ -175,6 +215,8 @@ class CreatNoteScreen extends Component {
 
   componentWillUnmount() {
     Voice.destroy().then(Voice.removeAllListeners);
+    DeviceEventEmitter.removeListener("OnNotificationDismissed");
+    DeviceEventEmitter.removeListener("OnNotificationOpened");
   }
 
   _removeNote = () => {
@@ -195,6 +237,22 @@ class CreatNoteScreen extends Component {
   setModalVisible(visible) {
     this.setState({ modalVisible: visible });
   }
+
+  showDateTimePicker = () => {
+    this.setState({ isDateTimePickerVisible: true });
+  };
+
+  hideDateTimePicker = () => {
+    this.setState({ isDateTimePickerVisible: false });
+  };
+
+  handleDatePicked = date => {
+    const fireDate = moment(date.toString()).format("DD-MM-YYYY HH:mm:ss ");
+    this.setState({
+      date: fireDate
+    });
+    this.hideDateTimePicker();
+  };
 
   render() {
     return (
@@ -219,39 +277,22 @@ class CreatNoteScreen extends Component {
               ]}
               onActionSelected={() => this.addNewNote()}
             />
-            <View>
-              <TouchableOpacity>
-                <Text
-                  style={[styles.textInput, { marginTop: 8 }]}
-                  onPress={this.showDateTimePicker}
-                >
-                  {this.state.selectedDate}
+            <View style={{ flexDirection: "row" }}>
+              <TouchableOpacity onPress={this.showDateTimePicker}>
+                <Text style={[styles.textInput, { marginTop: 8 }]}>
+                  {this.state.date}
                 </Text>
               </TouchableOpacity>
-              <DatePicker
-                style={{ width: 200 }}
-                date={this.state.date} //initial date from state
-                mode="date" //The enum of date, datetime and time
-                placeholder="select date"
-                format="DD-MM-YYYY"
-                minDate="01-01-2016"
-                maxDate="01-01-2020"
-                confirmBtnText="Confirm"
-                cancelBtnText="Cancel"
-                customStyles={{
-                  dateIcon: {
-                    position: "absolute",
-                    left: 0,
-                    top: 4,
-                    marginLeft: 0
-                  },
-                  dateInput: {
-                    marginLeft: 36
-                  }
-                }}
-                onDateChange={date => {
-                  this.setState({ date: date });
-                }}
+
+              <Text style={[styles.textInput, { marginTop: 8 }]}>
+                {this.state.time}
+              </Text>
+              <DateTimePicker
+                isVisible={this.state.isDateTimePickerVisible}
+                onConfirm={this.handleDatePicked}
+                onCancel={this.hideDateTimePicker}
+                is24Hour={true}
+                mode={"datetime"}
               />
             </View>
 
