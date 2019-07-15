@@ -1,4 +1,6 @@
 rootProject.name = 'noteRN'
+include ':react-native-alarm-notification'
+project(':react-native-alarm-notification').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-alarm-notification/android')
 include ':@terrylinla_react-native-sketch-canvas'
 project(':@terrylinla_react-native-sketch-canvas').projectDir = new File(rootProject.projectDir, '../node_modules/@terrylinla/react-native-sketch-canvas/android')
 include ':react-native-voice'
@@ -17,4 +19,6 @@ include ':react-native-voice', ':app'
 project(':react-native-voice').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-voice/android')
 include ':react-native-geocoder', ':app'
 project(':react-native-geocoder').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-geocoder/android')
+include ':react-native-alarm-notification'
+project(':react-native-alarm-notification').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-alarm-notification/android')
 include ':app'
