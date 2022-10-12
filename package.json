@@ -19,7 +19,7 @@
     "react-native-material-kit": "^0.5.1",
     "react-native-material-menu": "^0.6.3",
     "react-native-modal-datetime-picker": "^7.5.0",
-    "react-native-sqlite-storage": "^3.3.10",
+    "react-native-sqlite-storage": "^3.3.11",
     "react-native-swipeout": "^2.3.6",
     "react-native-vector-icons": "^6.6.0",
     "react-native-voice": "^0.3.0",
